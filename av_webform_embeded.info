@@ -1,0 +1,6 @@
+name = AV webform embeded
+description = Represents extension for webforms, which allows to get embeded code of webform.
+core = 7.x
+version = 7.x-1.1
+project = "av_webform_embeded"
+dependencies[] = webform
