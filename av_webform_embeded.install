@@ -1,0 +1,116 @@
+<?php
+/**
+ * @file
+ * Represents DB schema definition and logic related to (un)installing module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function av_webform_embeded_schema() {
+  $schema['webform_embeded'] = array(
+    'description' => 'The base table for webform settings.',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary identifier of record',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'nid' => array(
+        'description' => 'Id of webform node',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'display' => array(
+        'description' => 'Which way we should use for displaying: popup or embeded.',
+        'type' => 'varchar',
+        'length' => '8',
+        'not null' => TRUE,
+        'default' => 'popup',
+      ),
+      'type' => array(
+        'description' => 'Type of object: iframe or html.',
+        'type' => 'varchar',
+        'length' => '8',
+        'not null' => TRUE,
+        'default' => 'iframe',
+      ),
+      'height' => array(
+        'description' => 'Height of embeded object',
+        'type' => 'varchar',
+        'length' => '8',
+        'not null' => TRUE,
+        'default' => '300',
+      ),
+      'width' => array(
+        'description' => 'Width of embeded object',
+        'type' => 'varchar',
+        'length' => '8',
+        'not null' => TRUE,
+        'default' => '400',
+      ),
+      'position' => array(
+        'description' => 'Position of embeded object',
+        'type' => 'varchar',
+        'length' => '8',
+        'not null' => TRUE,
+        'default' => 'center',
+      ),
+      'event' => array(
+        'description' => 'On which event embeded object should be displayed.',
+        'type' => 'varchar',
+        'length' => '32',
+        'not null' => TRUE,
+        'default' => 'onload',
+      ),
+    ),
+    'unique keys' => array(
+      'nid' => array('nid'),
+    ),
+    'primary key' => array('id'),
+  );
+
+  $schema['webform_embeded_conditions'] = array(
+    'description' => 'The base table for webform embeded conditions.',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary identifier of record',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'nid' => array(
+        'description' => 'Id of webform node',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'type' => array(
+        'description' => 'Type of condition.',
+        'type' => 'varchar',
+        'length' => '10',
+        'not null' => TRUE,
+        'default' => 'page',
+      ),
+      'condition' => array(
+        'description' => 'Condition for filtering.',
+        'type' => 'varchar',
+        'length' => '20',
+        'not null' => TRUE,
+        'default' => 'contains',
+      ),
+      'data' => array(
+        'description' => 'Data of condition',
+        'type' => 'varchar',
+        'length' => '512',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+
+  return $schema;
+}
