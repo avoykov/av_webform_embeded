@@ -1,0 +1,75 @@
+#av-we-overlay {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: #949494;
+    opacity: 0.7;
+    z-index: 9998;
+}
+
+#av-we-content {
+    z-index: 9999;
+    margin: auto;
+    background-color: #FFFFFF;
+}
+
+#av-we-close {
+    display: inline;
+    position: absolute;
+    right: 0;
+    top: -3px;
+    width: 20px;
+    height: 20px;
+    z-index: 9999;
+    border: 1px solid black;
+    cursor: pointer;
+    text-align: center;
+    background: gray;
+}
+
+#av-we-close:hover {
+    background-color: #6e8fb1;
+}
+
+.av-we-position-center {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+.av-we-position-left {
+    top: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.av-we-position-right {
+    top: 0;
+    bottom: 0;
+    right: 0;
+}
+
+.av-we-position-bottom {
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+.av-we-position-top {
+    top: 0;
+    left: 0;
+    right: 0;
+}
+
+#av-we-iframe {
+    height: 100%;
+    width: 100%;
+    border: none;
+}
+
+.av-we-display-popup {
+    position: absolute;
+}

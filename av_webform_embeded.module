@@ -1,0 +1,321 @@
+<?php
+/**
+ * @file
+ * Contains all hooks definitions, common and helper functions.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function av_webform_embeded_menu() {
+  $items = array();
+
+  $items['node/%node/webform-embeded'] = array(
+    'title' => 'Webform embeded',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('av_webform_embeded_form', 1),
+    'access arguments' => array('av embeded webform access'),
+    'file' => 'av_webform_embeded.forms.inc',
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+  );
+
+  $items['node/%node/webform-embeded/content'] = array(
+    'page callback' => 'av_webform_embeded_page',
+    'page arguments' => array(1),
+    'access arguments' => array('av embeded webform access'),
+    'file' => 'av_webform_embeded.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['node/%node/webform-embeded/%/test'] = array(
+    'page callback' => 'av_webform_embeded_test_page',
+    'page arguments' => array(1, 3),
+    'access arguments' => array('av embeded webform access'),
+    'file' => 'av_webform_embeded.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function av_webform_embeded_admin_paths() {
+  $paths = array();
+  if (variable_get('node_admin_theme')) {
+    $paths = array(
+      'node/*/webform-embeded' => TRUE,
+    );
+  }
+
+  return $paths;
+}
+
+/**
+ * Implements hook_node_delete().
+ */
+function av_webform_embeded_node_delete($node) {
+  if ($node->type == 'webform') {
+    av_webform_embeded_delete($node->nid);
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function av_webform_embeded_theme() {
+  $path = drupal_get_path('module', 'av_webform_embeded');
+  return array(
+    'av_webform_embeded_code' => array(
+      'variables' => array(
+        'display' => NULL,
+        'height' => NULL,
+        'width' => NULL,
+        'position' => NULL,
+        'event' => NULL,
+        'js_path' => NULL,
+        'src' => NULL,
+        'conditions' => NULL,
+      ),
+      'path' => $path . '/templates',
+      'template' => 'av_webform_embeded_code',
+    ),
+    'av_we_conditions_table' => array(
+      'render element' => 'form',
+    ),
+  );
+}
+
+/**
+ * Helper function for saving embeded webform settings.
+ *
+ * @param object $settings
+ *   Object which contains all settings.
+ *
+ * @return mixed
+ *   Saved settings or FALSE.
+ */
+function av_webform_embeded_save($settings) {
+  try {
+    $conditions = $settings->conditions;
+    unset($settings->conditions);
+    if (!empty($settings->id)) {
+      db_update('webform_embeded')
+        ->fields((array) $settings)
+        ->condition('nid', $settings->nid)
+        ->execute();
+    }
+    else {
+      $settings->id = db_insert('webform_embeded')
+        ->fields((array) $settings)
+        ->execute();
+    }
+    try {
+      db_delete('webform_embeded_conditions')
+        ->condition('nid', $settings->nid)
+        ->execute();
+    }
+    catch (Exception $ex) {
+      watchdog_exception('av_webform_embeded', $ex);
+      return NULL;
+    }
+
+    foreach ($conditions as $condition) {
+      $condition = (object) $condition;
+      $condition->nid = $settings->nid;
+      // @todo change column name.
+      $data = (array) $condition;
+      $data['`condition`'] = $data['condition'];
+      unset($data['condition']);
+      $condition->id = db_insert('webform_embeded_conditions')
+        ->fields($data)
+        ->execute();
+      $settings->conditions[$condition->id] = $condition;
+    }
+  }
+  catch (Exception $ex) {
+    watchdog_exception('av_webform_embeded', $ex);
+    return FALSE;
+  }
+
+  return $settings;
+}
+
+/**
+ * Helper function for loading embeded webform settings.
+ *
+ * @param int $nid
+ *   Id of node.
+ *
+ * @return mixed
+ *   Saved settings or FALSE.
+ */
+function av_webform_embeded_load($nid) {
+  $settings = new stdClass();
+  $settings->conditions = array();
+  try {
+    if (!empty($nid)) {
+      $result = db_select('webform_embeded', 'we')
+        ->fields('we')
+        ->condition('we.nid', $nid)
+        ->execute()
+        ->fetch();
+      if ($result) {
+        $settings = $result;
+        $settings->conditions = array();
+        $query = db_select('webform_embeded_conditions', 'c')
+          ->fields('c')
+          ->condition('c.nid', $nid);
+        foreach ($query->execute() as $condition) {
+          $settings->conditions[$condition->id] = $condition;
+        }
+      }
+    }
+  }
+  catch (Exception $ex) {
+    watchdog_exception('av_webform_embeded', $ex, t('Error during loading.'));
+    return FALSE;
+  }
+  return $settings;
+}
+
+/**
+ * Helper function for deleting embeded webform settings.
+ *
+ * @param int $nid
+ *   Id of node.
+ *
+ * @return bool
+ *   Status of operation.
+ */
+function av_webform_embeded_delete($nid) {
+  try {
+    if (!empty($nid)) {
+      db_delete('webform_embeded')
+        ->condition('nid', $nid)
+        ->execute();
+
+      db_delete('webform_embeded_conditions')
+        ->condition('nid', $nid)
+        ->execute();
+    }
+  }
+  catch (Exception $ex) {
+    watchdog_exception('av_webform_embeded', $ex, t('Error during deleting.'));
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+/**
+ * Helper function for generating embeded code.
+ *
+ * @param object $settings
+ *   Object with config related to webform.
+ *
+ * @return string
+ *   Embeded script as string.
+ */
+function av_webform_embeded_generate_code($settings) {
+  $path = drupal_get_path('module', 'av_webform_embeded');
+
+  $js_path = $path . '/js/av_webform_embeded.js';
+  $js_path = url($js_path, array('absolute' => TRUE));
+
+  $css_path = $path . '/css/av_webform_embeded.css';
+  $css_path = url($css_path, array('absolute' => TRUE));
+
+  $settings->width = empty($settings->width) ? 'default' : $settings->width;
+  $settings->height = empty($settings->height) ? 'default' : $settings->height;
+
+  $parts = explode('_', $settings->event);
+  $settings->event = $parts[0];
+
+  if ($settings->type == 'iframe') {
+    $src = "node/{$settings->nid}/webform-embeded/content";
+    $src = url($src, array('absolute' => TRUE));
+  }
+  else {
+    $node = node_load($settings->nid);
+    webform_node_view($node, 'full');
+    $action = &$node->content['webform']['#form']['#action'];
+    $action = url("node/{$node->nid}/webform-embeded/content", array('absolute' => TRUE));
+    $src = preg_replace('/[\r\n]+/', '', theme_webform_view($node->content));
+  }
+  $variables = array(
+    'display' => $settings->display,
+    'type' => $settings->type,
+    'height' => $settings->height,
+    'width' => $settings->width,
+    'position' => $settings->position,
+    'event' => $settings->event,
+    'js_path' => $js_path,
+    'css_path' => $css_path,
+    'src' => $src,
+    'unique' => $src,
+    'delay' => !empty($parts[1]) ? $parts[1] : 0,
+    'conditions' => json_encode($settings->conditions),
+  );
+  $variables['hash'] = sha1(implode('', $variables));
+
+  return theme('av_webform_embeded_code', $variables);
+}
+
+/**
+ * Implements hook_preprocess_HOOK().
+ */
+function av_webform_embeded_preprocess_html(&$variables) {
+  $path = current_path();
+  if (preg_match('/node\/\d+\/webform-embeded\/\d\/content/', $path)) {
+    drupal_add_css(drupal_get_path('module', 'av_webform_embeded') . '/css/av_webform_embeded_page.css');
+  }
+}
+
+/**
+ * Implements hook_theme_registry_alter().
+ */
+function av_webform_embeded_theme_registry_alter(&$theme_registry) {
+  // Defined path to the current module.
+  $module_path = drupal_get_path('module', 'av_webform_embeded');
+  // Find all .tpl.php files in this module's folder recursively.
+  $template_file_objects = drupal_find_theme_templates($theme_registry, '.tpl.php', $module_path);
+  // Iterate through all found template file objects.
+  foreach ($template_file_objects as $key => $template_file_object) {
+    // If the template has not already been overridden by a theme.
+    if (!isset($theme_registry[$key]['theme path']) || !preg_match('#/themes/#', $theme_registry[$key]['theme path'])) {
+      // Alter the theme path and template elements.
+      $theme_registry[$key]['theme path'] = $module_path;
+      $theme_registry[$key] = array_merge($theme_registry[$key], $template_file_object);
+      $theme_registry[$key]['type'] = 'module';
+    }
+  }
+}
+
+/**
+ * Custom theme function for table of lists.
+ */
+function theme_av_we_conditions_table($variables) {
+  $form = $variables['form'];
+  $rows = array();
+  foreach (element_children($form['conditions']) as $id) {
+    $rows[$id] = array(
+      drupal_render($form['conditions'][$id]['type']),
+      drupal_render($form['conditions'][$id]['condition']),
+      drupal_render($form['conditions'][$id]['data']),
+      drupal_render($form['conditions'][$id]['delete']),
+    );
+  }
+  $output = theme('table', array(
+    'header' => $form['#header'],
+    'rows' => $rows,
+    'empty' => $form['#empty'],
+    'attributes' => array('id' => 'av-we-conditions-table'),
+  ));
+
+  $output .= drupal_render_children($form);
+
+  return $output;
+}

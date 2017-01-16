@@ -1,0 +1,10 @@
+.av-we-hide {
+    display: none;
+}
+#av-we-event-wrapper {
+    display: inline-block;
+    margin-top: 21px;
+}
+.form-item-settings-event {
+    float: left;
+}
