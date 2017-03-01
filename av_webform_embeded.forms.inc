@@ -249,6 +249,7 @@ function av_webform_embeded_form($form, &$form_state, $node) {
     '#value' => t('Get code'),
     '#submit' => array('av_webform_embeded_form_code'),
     '#validate' => array('av_webform_embeded_form_validate'),
+    '#limit_validation_errors' => array(),
     '#ajax' => array(
       'wrapper' => 'av-webform-embeded',
       'callback' => 'av_webform_embeded_ajax_callback',
