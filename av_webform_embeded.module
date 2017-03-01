@@ -40,6 +40,18 @@ function av_webform_embeded_menu() {
 }
 
 /**
+ * Implements hook_permission().
+ */
+function av_webform_embeded_permission() {
+  return array(
+    'av embeded webform access' => array(
+      'title' => t('Administer av webform  embeded configuraiton'),
+      'description' => t('Perform administration actions related av webform embeded module.'),
+    ),
+  );
+}
+
+/**
  * Implements hook_admin_paths().
  */
 function av_webform_embeded_admin_paths() {
