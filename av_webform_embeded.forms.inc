@@ -34,7 +34,6 @@ function av_webform_embeded_form($form, &$form_state, $node) {
       'embeded' => t('Embeded'),
     ),
     '#default_value' => !empty($settings->display) ? $settings->display : 'popup',
-    '#required' => TRUE,
   );
 
   $form['settings']['type'] = array(
@@ -46,7 +45,6 @@ function av_webform_embeded_form($form, &$form_state, $node) {
       'html' => t('HTML'),
     ),
     '#default_value' => !empty($settings->type) ? $settings->type : 'iframe',
-    '#required' => TRUE,
   );
 
   $form['settings']['height'] = array(
@@ -75,7 +73,6 @@ function av_webform_embeded_form($form, &$form_state, $node) {
       'right' => t('Right'),
       'bottom' => t('Bottom'),
     ),
-    '#required' => TRUE,
   );
   $parts = !empty($settings->event) ? explode('_', $settings->event) : array();
   $form['settings']['event'] = array(
@@ -90,7 +87,6 @@ function av_webform_embeded_form($form, &$form_state, $node) {
       'onexit' => t('On to exit page'),
       'delay' => t('After certain time'),
     ),
-    '#required' => TRUE,
     '#ajax' => array(
       'wrapper' => 'av-we-event-wrapper',
       'callback' => 'av_we_event_ajax_handler',
@@ -116,7 +112,6 @@ function av_webform_embeded_form($form, &$form_state, $node) {
     '#prefix' => '<div id="av-we-event-wrapper">',
     '#suffix' => '</div>',
     '#size' => 6,
-    '#required' => TRUE,
   );
 
   $form['conditions_wrapper'] = array(
