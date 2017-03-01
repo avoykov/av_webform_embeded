@@ -3,8 +3,7 @@
  * @file
  * Represents custom forms and logic related to them.
  */
-error_reporting(E_ALL);
-ini_set("display_errors", 1);
+
 /**
  * Form handler for configuration embeded webform.
  *
@@ -54,14 +53,14 @@ function av_webform_embeded_form($form, &$form_state, $node) {
     '#type' => 'textfield',
     '#title' => t('Height'),
     '#description' => t('Enter height of embeded object.'),
-    '#default_value' => !empty($settings->height) ? $settings->height : 300,
+    '#default_value' => !empty($settings->height) ? $settings->height : '300px',
   );
 
   $form['settings']['width'] = array(
     '#type' => 'textfield',
     '#title' => t('Width'),
     '#description' => t('Enter width of embeded object.'),
-    '#default_value' => !empty($settings->width) ? $settings->width : 400,
+    '#default_value' => !empty($settings->width) ? $settings->width : '400px',
   );
 
   $form['settings']['position'] = array(
@@ -78,7 +77,7 @@ function av_webform_embeded_form($form, &$form_state, $node) {
     ),
     '#required' => TRUE,
   );
-  $parts = explode('_', $settings->event);
+  $parts = !empty($settings->event) ? explode('_', $settings->event) : array();
   $form['settings']['event'] = array(
     '#type' => 'select',
     '#title' => t('Event'),
