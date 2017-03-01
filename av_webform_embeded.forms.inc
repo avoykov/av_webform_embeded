@@ -369,7 +369,7 @@ function av_webform_embeded_ajax_callback($form, &$form_state) {
  *   Array with form state.
  */
 function av_webform_embeded_form_code($form, &$form_state) {
-  $values = $form_state['values'];
+  $values = $form_state['input'];
   $settings = (object) $values['settings'];
   $settings->nid = $values['node']->nid;
   if (!empty($settings->delay)) {
